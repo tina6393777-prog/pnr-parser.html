@@ -85,33 +85,23 @@ SEC 1 WENHUA 2ND RD LINKOU DIST NEW TAIPEI CITY 244008
 </div>
 
 <script>
-const GEMINI_KEY = 'AIzaSyBGcmbFrg_I2dqZvFxJoDKqLVYfUMUPt9Y';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgEwDjLlBNUdjVnq-SQO50H_wpg4SFipuX04knbqkRExnqJTXUEOxN5zLRxPVgiQ/exec';
 
 async function translateAddresses(trips) {
   const addrs = trips.map(t => t.地址).filter(a => a);
   if (!addrs.length) return trips;
 
-  const prompt = '請將以下英文地址翻譯成繁體中文地址格式（如：新北市林口區文化二路一段335號），每行一個，只回傳翻譯結果，不要編號不要任何說明，順序與輸入相同：\n' + addrs.join('\n');
-
   try {
-    const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + GEMINI_KEY, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0 }
-      })
-    });
-    if (!resp.ok) {
-      const err = await resp.text();
-      console.error('Gemini error:', resp.status, err);
-      return trips;
-    }
-    const data = await resp.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    console.log('Gemini response:', text);
-    const translated = text.trim().split('\n').map(l => l.trim()).filter(l => l);
+    const translated = await Promise.all(addrs.map(async (addr) => {
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ address: addr })
+      });
+      const data = await resp.json();
+      return data.result || addr;
+    }));
 
     let i = 0;
     return trips.map(t => {
@@ -119,7 +109,7 @@ async function translateAddresses(trips) {
       return t;
     });
   } catch(e) {
-    console.error('Gemini fetch failed:', e);
+    console.error('翻譯失敗:', e);
     return trips;
   }
 }
