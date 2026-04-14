@@ -191,12 +191,16 @@ function extractData(raw) {
       if (pum) 上車時間 = pum[1];
     }
 
-    // 信箱（SSR CTCE）
+    // 信箱（SSR CTCE，從整份原文搜尋，對應行程編號 HK1/HK2）
     let 客戶信箱 = '';
-    const ssrLine = block.find(l => /^SSR\s+CTCE/.test(l));
+    const allSsrCtce = lines.filter(l => /SSR\s+CTCE/.test(l));
+    // 找對應此行程編號的 SSR CTCE
+    let ssrLine = allSsrCtce.find(l => new RegExp('SSR\\s+CTCE\\s+\\S+\\s+HK' + 行程編號).test(l));
+    if (!ssrLine) ssrLine = allSsrCtce[0]; // fallback 取第一筆
     if (ssrLine) {
-      const em = ssrLine.match(/\/([A-Z0-9._%+\-]+\/\/[A-Z0-9._%+\-]+\.[A-Z]{2,})/i);
-      if (em) 客戶信箱 = em[1].replace('//', '@');
+      const em = ssrLine.match(/([A-Z0-9._%+\-]+)\/\/@([A-Z0-9.\-]+\.[A-Z]{2,})/i) ||
+                 ssrLine.match(/([A-Z0-9._%+\-]+)\/\/([A-Z0-9.\-]+\.[A-Z]{2,})/i);
+      if (em) 客戶信箱 = em[1] + '@' + em[2];
     }
 
     trips.push({ 行程編號, 台數, 地址: 地址.trim(), 聯絡電話, 上車時間, 客戶信箱 });
