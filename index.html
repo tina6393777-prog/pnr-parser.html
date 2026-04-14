@@ -91,13 +91,16 @@ async function translateAddresses(trips) {
   const addrs = trips.map(t => t.地址).filter(a => a);
   if (!addrs.length) return trips;
 
-  const prompt = '請將以下英文地址翻譯成繁體中文地址格式（如：新北市林口區文化二路一段335號），每行一個，只回傳翻譯結果，不要任何說明，順序與輸入相同：\n' + addrs.join('\n');
+  const prompt = '請將以下英文地址翻譯成繁體中文地址格式（如：新北市林口區文化二路一段335號），每行一個，只回傳翻譯結果，不要編號不要任何說明，順序與輸入相同：\n' + addrs.join('\n');
 
   try {
-    const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY, {
+    const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + GEMINI_KEY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0 }
+      })
     });
     const data = await resp.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -109,7 +112,7 @@ async function translateAddresses(trips) {
       return t;
     });
   } catch(e) {
-    return trips; // 翻譯失敗就保留英文
+    return trips;
   }
 }
 
