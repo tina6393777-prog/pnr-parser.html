@@ -6,278 +6,45 @@
 <title>接送單解析工具</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #F5F4F0;
-    --surface: #FFFFFF;
-    --border: #E2E0D8;
-    --border-dark: #C8C5BB;
-    --text: #1A1916;
-    --text-muted: #6B6860;
-    --accent: #2D5A8E;
-    --accent-light: #EBF1F8;
-    --success: #1A6B3C;
-    --success-light: #E8F5EE;
+    --bg: #F5F4F0; --surface: #FFFFFF;
+    --border: #E2E0D8; --border-dark: #C8C5BB;
+    --text: #1A1916; --text-muted: #6B6860;
+    --accent: #2D5A8E; --accent-light: #EBF1F8;
     --tag-bg: #F0EDE6;
   }
-
-  body {
-    font-family: 'Noto Sans TC', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem;
-  }
-
-  .container {
-    max-width: 680px;
-    margin: 0 auto;
-  }
-
-  header {
-    margin-bottom: 2rem;
-  }
-
-  .logo-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
-
-  .logo-icon {
-    width: 32px;
-    height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo-icon svg { width: 18px; height: 18px; fill: white; }
-
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-left: 42px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-  }
-
-  .card-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-
-  textarea {
-    width: 100%;
-    min-height: 180px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.7;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    color: var(--text);
-    background: var(--bg);
-    resize: vertical;
-    transition: border-color 0.15s;
-    outline: none;
-  }
-
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+  .container { max-width: 680px; margin: 0 auto; }
+  header { margin-bottom: 2rem; }
+  .logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; }
+  h1 { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-left: 42px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+  textarea { width: 100%; min-height: 180px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); background: var(--bg); resize: vertical; transition: border-color 0.15s; outline: none; }
   textarea:focus { border-color: var(--accent); }
   textarea::placeholder { color: var(--text-muted); opacity: 0.7; }
-
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-
-  button {
-    font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 9px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border-dark);
-    cursor: pointer;
-    transition: all 0.15s;
-    outline: none;
-  }
-
-  #parseBtn {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-    flex: 1;
-  }
-
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+  button { font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer; transition: all 0.15s; outline: none; }
+  #parseBtn { background: var(--accent); color: white; border-color: var(--accent); flex: 1; }
   #parseBtn:hover { background: #234878; }
-  #parseBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  #clearBtn {
-    background: transparent;
-    color: var(--text-muted);
-  }
-
+  #clearBtn { background: transparent; color: var(--text-muted); }
   #clearBtn:hover { background: var(--tag-bg); }
-
-  .loading {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 0;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid var(--border-dark);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
   #result { display: none; }
-
-  .result-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-  }
-
-  .result-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--tag-bg);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .result-header-title {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text-muted);
-  }
-
-  .copy-btn {
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border-dark);
-    background: white;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .copy-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
-  .copy-btn.copied { background: var(--success-light); color: var(--success); border-color: var(--success); }
-
-  .result-body {
-    padding: 16px;
-  }
-
-  .field-row {
-    display: flex;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+  .result-header { display: flex; align-items: center; padding: 10px 16px; background: var(--tag-bg); border-bottom: 1px solid var(--border); }
+  .result-header-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+  .trip-header { background: var(--accent-light); }
+  .trip-header .result-header-title { color: var(--accent); }
+  .result-body { padding: 16px; }
+  .field-row { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .field-row:last-child { border-bottom: none; }
-
-  .field-key {
-    color: var(--text-muted);
-    min-width: 90px;
-    flex-shrink: 0;
-  }
-
-  .field-val {
-    color: var(--text);
-    font-weight: 500;
-    word-break: break-all;
-  }
-
-  .output-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .output-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--success-light);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .output-title {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--success);
-  }
-
-  .output-text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.9;
-    padding: 16px;
-    color: var(--text);
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
-
-  .error-msg {
-    background: #FEF2F2;
-    border: 1px solid #FCA5A5;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: #B91C1C;
-  }
-
-  .hint {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-    line-height: 1.6;
-  }
+  .field-key { color: var(--text-muted); min-width: 100px; flex-shrink: 0; }
+  .field-val { color: var(--text); font-weight: 500; word-break: break-all; line-height: 1.6; }
+  .error-msg { background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #B91C1C; }
 </style>
 </head>
 <body>
@@ -285,7 +52,9 @@
   <header>
     <div class="logo-row">
       <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
       </div>
       <h1>接送單解析工具</h1>
     </div>
@@ -302,14 +71,13 @@ R/JD3HPF
 1HU/LICHINGMS
 EK 367 A 08JAN TPEDXB HK3 2300 -4 0455-5
 AUX SUR EK HK1
-TPE 08JAN /CDD/EK0367/..."></textarea>
+TPE 08JAN /CDD/EK0367/08JANTPEDXB/TPE NO 335
+SEC 1 WENHUA 2ND RD LINKOU DIST NEW TAIPEI CITY 244008
+886933001511  PU 19:30
+..."></textarea>
     <div class="btn-row">
       <button id="parseBtn" onclick="parseIt()">解析</button>
       <button id="clearBtn" onclick="clearAll()">清除</button>
-    </div>
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <span>AI 解析中，請稍候…</span>
     </div>
   </div>
 
@@ -317,128 +85,161 @@ TPE 08JAN /CDD/EK0367/..."></textarea>
 </div>
 
 <script>
-async function parseIt() {
+function parseIt() {
   const raw = document.getElementById('rawInput').value.trim();
   if (!raw) return;
-
-  const btn = document.getElementById('parseBtn');
-  const loading = document.getElementById('loading');
   const result = document.getElementById('result');
-
-  btn.disabled = true;
-  loading.style.display = 'flex';
   result.style.display = 'none';
   result.innerHTML = '';
-
-  const prompt = `你是一個接送訂單解析助手。請從以下原始 PNR/接送單文字中，依照以下規則擷取結構化資料，並以 JSON 格式回傳，不要有任何說明文字或 markdown。
-
-欄位擷取規則：
-- 訂位代號：R/ 後面的代碼（如 JD3HPF）
-- 乘客：以數字開頭的姓名行，如 1CHEN/PINGTSAOMR、1HU/LICHINGMS，去掉開頭數字，保留 CHEN/PINGTSAO 格式（去掉結尾的 MR/MS/S 等稱謂）
-- 艙等：航班那行的座位號，如 367 A
-- 總人數：航班行中 HK 後面的數字（第一個出現的 HK，如 HK3 → 3）
-- 航班：航班那行的航班代碼，如 EK 367
-- 起飛時間：航班行中的起飛時間數字，如 2300
-- 抵達時間：航班行中 -4 後面的時間數字，如 0455
-- 接送行程：依 AUX SUR EK HK1、HK2、HK3 分組，有幾組就回傳幾組，規則如下：
-  - 行程編號：HK 後面的數字（1、2、3）
-  - 台數：該行程 HK 後面的數字（如 HK1 → 1、HK2 → 2）
-  - 地址：TPE 那行後面的英文地址，翻譯成完整繁體中文地址格式（如 SEC 1 WENHUA 2ND RD LINKOU DIST NEW TAIPEI CITY 244008 → 新北市林口區文化二路一段335號，NO 335 / NO 26 等編號要帶入地址中作為門牌號碼），只回傳中文地址，不保留英文
-  - 聯絡電話：886 開頭的電話號碼
-  - 上車時間：PU 後面的時間（如 19:30）
-  - 客戶信箱：SSR CTCE 那行中 / 後面、-1 前面的 email，將 // 替換為 @，並移除多餘符號，輸出標準 email 格式（如 SUNNYROSE.JIANG@GMAIL.COM）；若無則填空字串
-
-JSON 格式：
-{
-  "訂位代號": "",
-  "乘客": ["CHEN/PINGTSAO", "HU/LICHING"],
-  "艙等": "",
-  "總人數": "",
-  "航班": "",
-  "起飛時間": "",
-  "抵達時間": "",
-  "接送行程": [
-    {
-      "行程編號": 1,
-      "台數": "",
-      "地址": "",
-      "聯絡電話": "",
-      "上車時間": "",
-      "客戶信箱": ""
-    }
-  ]
-}
-
-若某欄位找不到，值填 ""。
-
-原始文字：
-${raw}`;
-
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-
-    const data = await resp.json();
-    const text = data.content.map(i => i.text || "").join("").replace(/```json|```/g, "").trim();
-    const d = JSON.parse(text);
+    const d = extractData(raw);
     renderResult(d);
   } catch(e) {
     result.innerHTML = '<div class="error-msg">解析失敗，請確認文字格式後重試。</div>';
     result.style.display = 'block';
   }
-
-  btn.disabled = false;
-  loading.style.display = 'none';
 }
 
+function extractData(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+
+  // 訂位代號
+  const pnrLine = lines.find(l => /^R\//.test(l));
+  const 訂位代號 = pnrLine ? pnrLine.replace('R/', '').trim() : '';
+
+  // 乘客姓名（數字開頭，去掉前面數字，去掉結尾稱謂）
+  const 乘客 = lines
+    .filter(l => /^\d[A-Z]/.test(l))
+    .map(l => l.replace(/^\d/, '').replace(/\s*(MR|MRS|MS|MISS|DR)$/i, '').trim());
+
+  // 航班行
+  let 航班 = '', 艙等 = '', 總人數 = '', 起飛時間 = '', 抵達時間 = '';
+  const flightLine = lines.find(l => /\bHK\d\b/.test(l) && /\d{4}/.test(l) && /^[A-Z]{2}\s*\d+/.test(l));
+  if (flightLine) {
+    const fm = flightLine.match(/^([A-Z]{2}\s*\d+)/);
+    if (fm) 航班 = fm[1].trim();
+
+    const cm = flightLine.match(/[A-Z]{2}\s*\d+\s+([A-Z])\s/);
+    if (cm) 艙等 = 航班.replace(/\s/g,'').replace(/[A-Z]{2}(\d+)/,'$1') + ' ' + cm[1];
+
+    const hkm = flightLine.match(/\bHK(\d+)\b/);
+    if (hkm) 總人數 = hkm[1];
+
+    const depm = flightLine.match(/\bHK\d+\s+(\d{4})\b/);
+    if (depm) 起飛時間 = depm[1];
+
+    const arrm = flightLine.match(/-\d+\s+(\d{4})/);
+    if (arrm) 抵達時間 = arrm[1];
+
+    // 艙等重新取（如 367 A）
+    const cm2 = flightLine.match(/(\d+\s+[A-Z])\s+\d{2}[A-Z]{3}/);
+    if (cm2) 艙等 = cm2[1].trim();
+  }
+
+  // 行程區塊：依 AUX SUR EK HKn 分割
+  const trips = [];
+  const auxIdx = [];
+  lines.forEach((l, i) => { if (/^AUX\s+SUR\s+EK\s+HK\d/.test(l)) auxIdx.push(i); });
+
+  auxIdx.forEach((si, idx) => {
+    const ei = auxIdx[idx + 1] || lines.length;
+    const block = lines.slice(si, ei);
+
+    // 行程編號
+    const auxHkm = block[0].match(/HK(\d+)/);
+    const 行程編號 = auxHkm ? parseInt(auxHkm[1]) : idx + 1;
+
+    // 台數：找 block 中獨立的 HKn 行（非 AUX 那行）
+    let 台數 = '';
+    for (let i = 1; i < block.length; i++) {
+      const hkOnly = block[i].match(/^HK(\d+)$/) || block[i].match(/\bHK(\d+)\b/) ;
+      if (hkOnly && !/^AUX/.test(block[i]) && !/^TPE/.test(block[i])) {
+        台數 = hkOnly[1];
+        break;
+      }
+    }
+    // fallback: 從 AUX 行取
+    if (!台數 && auxHkm) 台數 = auxHkm[1];
+
+    // TPE 行 & 地址
+    let 地址 = '';
+    const tpeLineIdx = block.findIndex(l => /^TPE\s+\d{2}[A-Z]{3}/.test(l));
+    if (tpeLineIdx >= 0) {
+      const tpeLine = block[tpeLineIdx];
+      // 從 TPE 行抓 NO xxx
+      const noM = tpeLine.match(/TPE\s+NO\s+(\d+)/i);
+      // 下一行是地址
+      const nextLine = block[tpeLineIdx + 1] || '';
+      const isAddress = nextLine && !/^886|^PU\s|^SSR|^AUX|^TPE/.test(nextLine);
+
+      if (noM) {
+        地址 = 'TPE NO ' + noM[1] + (isAddress ? ' ' + nextLine : '');
+      } else if (isAddress) {
+        地址 = nextLine;
+      }
+    }
+
+    // 電話（886 開頭）
+    const phoneLine = block.find(l => /^886/.test(l));
+    let 聯絡電話 = '';
+    if (phoneLine) {
+      const pm = phoneLine.match(/^(886\d+)/);
+      if (pm) 聯絡電話 = pm[1];
+    }
+
+    // 上車時間（PU HH:MM）
+    let 上車時間 = '';
+    const puLine = block.find(l => /\bPU\s+\d{1,2}:\d{2}/.test(l));
+    if (puLine) {
+      const pum = puLine.match(/\bPU\s+(\d{1,2}:\d{2})/);
+      if (pum) 上車時間 = pum[1];
+    }
+
+    // 信箱（SSR CTCE）
+    let 客戶信箱 = '';
+    const ssrLine = block.find(l => /^SSR\s+CTCE/.test(l));
+    if (ssrLine) {
+      const em = ssrLine.match(/\/([A-Z0-9._%+\-]+\/\/[A-Z0-9._%+\-]+\.[A-Z]{2,})/i);
+      if (em) 客戶信箱 = em[1].replace('//', '@');
+    }
+
+    trips.push({ 行程編號, 台數, 地址: 地址.trim(), 聯絡電話, 上車時間, 客戶信箱 });
+  });
+
+  return { 訂位代號, 乘客, 艙等, 總人數, 航班, 起飛時間, 抵達時間, 接送行程: trips };
+}
 
 function renderResult(d) {
   const result = document.getElementById('result');
-  const passengers = (d['乘客'] || []).join('<br>') || '—';
+  const passengers = (d.乘客 || []).join('<br>') || '—';
 
-  let html = `
-  <div class="result-card">
-    <div class="result-header">
-      <span class="result-header-title">基本資訊</span>
-    </div>
-    <div class="result-body">
-      <div class="field-row"><span class="field-key">訂位代號</span><span class="field-val">${d['訂位代號']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">乘客姓名</span><span class="field-val">${passengers}</span></div>
-      <div class="field-row"><span class="field-key">艙等</span><span class="field-val">${d['艙等']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">總人數</span><span class="field-val">${d['總人數']||'—'} 人</span></div>
-      <div class="field-row"><span class="field-key">航班</span><span class="field-val">${d['航班']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">起飛時間</span><span class="field-val">${d['起飛時間']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">抵達時間</span><span class="field-val">${d['抵達時間']||'—'}</span></div>
-    </div>
-  </div>`;
+  let html = '<div class="result-card"><div class="result-header"><span class="result-header-title">基本資訊</span></div><div class="result-body">';
+  html += row('訂位代號', d.訂位代號);
+  html += '<div class="field-row"><span class="field-key">乘客姓名</span><span class="field-val">' + passengers + '</span></div>';
+  html += row('艙等', d.艙等);
+  html += row('總人數', d.總人數 ? d.總人數 + ' 人' : '');
+  html += row('航班', d.航班);
+  html += row('起飛時間', d.起飛時間);
+  html += row('抵達時間', d.抵達時間);
+  html += '</div></div>';
 
-  (d['接送行程'] || []).forEach(trip => {
-    html += `
-  <div class="result-card">
-    <div class="result-header">
-      <span class="result-header-title">行程 ${trip['行程編號']}</span>
-    </div>
-    <div class="result-body">
-      <div class="field-row"><span class="field-key">台數</span><span class="field-val">${trip['台數']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">地址</span><span class="field-val">${trip['地址']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">電話</span><span class="field-val">${trip['聯絡電話']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">上車時間</span><span class="field-val">${trip['上車時間']||'—'}</span></div>
-      <div class="field-row"><span class="field-key">信箱</span><span class="field-val">${trip['客戶信箱']||''}</span></div>
-    </div>
-  </div>`;
+  (d.接送行程 || []).forEach(trip => {
+    html += '<div class="result-card"><div class="result-header trip-header"><span class="result-header-title">行程 ' + trip.行程編號 + '</span></div><div class="result-body">';
+    html += row('台數', trip.台數);
+    html += row('地址', trip.地址);
+    html += row('電話', trip.聯絡電話);
+    html += row('上車時間', trip.上車時間);
+    html += row('信箱', trip.客戶信箱);
+    html += '</div></div>';
   });
 
   result.innerHTML = html;
   result.style.display = 'block';
 }
 
+function row(key, val) {
+  return '<div class="field-row"><span class="field-key">' + key + '</span><span class="field-val">' + (val || '—') + '</span></div>';
+}
 
 function clearAll() {
   document.getElementById('rawInput').value = '';
