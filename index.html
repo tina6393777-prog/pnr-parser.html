@@ -146,10 +146,14 @@ function extractData(raw) {
   const pnrLine = cleanLines.find(l => /^R\//.test(l));
   const 訂位代號 = pnrLine ? pnrLine.replace('R/', '').trim().split(/\s+/)[0] : '';
 
-  // 乘客姓名（數字開頭但必須含 / 的才是乘客，排除 2REALONE 這種人數行）
+  // 乘客姓名（數字開頭且含 /，只取第一個空格前的部分，去掉結尾稱謂）
   const 乘客 = cleanLines
     .filter(l => /^\d[A-Z]/.test(l) && l.includes('/'))
-    .map(l => l.replace(/^\d/, '').replace(/\s*(MR|MRS|MS|MISS|DR)$/i, '').trim());
+    .map(l => {
+      let name = l.replace(/^\d/, '').trim().split(/\s+/)[0];
+      name = name.replace(/(MRS|MISS|MR|MS|DR)$/i, '').trim();
+      return name;
+    });
 
   // 航班資訊：EK/航班行 + HK行可能分開
   let 航班 = '', 艙等 = '', 總人數 = '', 起飛時間 = '', 抵達時間 = '';
