@@ -137,38 +137,56 @@ async function parseIt() {
 
 function extractData(raw) {
   // 先把 "1.EK..." "2.AUX..." 這種編號格式拆開成獨立行
-  const expanded = raw.replace(/(\s)(\d+\.(EK|AUX|SSR|TPE))/g, '\n$2');
+  const expanded = raw.replace(/(\s)(\d+\.(EK|AUX|SSR|TPE|ADDRESS))/g, '\n$2');
   const lines = expanded.split('\n').map(l => l.trim()).filter(l => l);
   // 去掉行首的 "1." "2." 等編號
   const cleanLines = lines.map(l => l.replace(/^\d+\./, '').trim());
 
-  // 訂位代號
+  // 訂位代號（R/ 後面第一個空白前的內容）
   const pnrLine = cleanLines.find(l => /^R\//.test(l));
-  const 訂位代號 = pnrLine ? pnrLine.replace('R/', '').trim() : '';
+  const 訂位代號 = pnrLine ? pnrLine.replace('R/', '').trim().split(/\s+/)[0] : '';
 
   // 乘客姓名
   const 乘客 = cleanLines
     .filter(l => /^\d[A-Z]/.test(l))
     .map(l => l.replace(/^\d/, '').replace(/\s*(MR|MRS|MS|MISS|DR)$/i, '').trim());
 
-  // 航班行
+  // 航班資訊：EK/航班行 + HK行可能分開
   let 航班 = '', 艙等 = '', 總人數 = '', 起飛時間 = '', 抵達時間 = '';
-  const flightLine = cleanLines.find(l => /\bHK\d\b/.test(l) && /\d{4}/.test(l) && /^[A-Z]{2}\s*\d+/.test(l));
+
+  // 先找包含 HK 的航班行（傳統格式）
+  let flightLine = cleanLines.find(l => /\bHK\d\b/.test(l) && /\d{4}/.test(l) && /^[A-Z]{2}\s*\d+/.test(l));
+
   if (flightLine) {
+    // 傳統格式：EK 367 A 08JAN TPEDXB HK3 2300 -4 0455
     const fm = flightLine.match(/^([A-Z]{2}\s*\d+)/);
     if (fm) 航班 = fm[1].trim();
-
     const hkm = flightLine.match(/\bHK(\d+)\b/);
     if (hkm) 總人數 = hkm[1];
-
     const depm = flightLine.match(/\bHK\d+\s+(\d{4})\b/);
     if (depm) 起飛時間 = depm[1];
-
     const arrm = flightLine.match(/-\d+\s+(\d{4})/);
     if (arrm) 抵達時間 = arrm[1];
-
     const cm2 = flightLine.match(/(\d+\s+[A-Z])\s+\d{2}[A-Z]{3}/);
     if (cm2) 艙等 = cm2[1].trim();
+  } else {
+    // 分行格式：EK 367 O 02APR TPEDXB（一行）+ HK1 2305-4 0435-5（另一行）
+    const ekLine = cleanLines.find(l => /^[A-Z]{2}\s+\d+\s+[A-Z]\s+\d{2}[A-Z]{3}/.test(l));
+    const hkLine = cleanLines.find(l => /^HK\d\s+\d{4}/.test(l));
+    if (ekLine) {
+      const fm = ekLine.match(/^([A-Z]{2}\s*\d+)/);
+      if (fm) 航班 = fm[1].trim();
+      const cm2 = ekLine.match(/(\d+\s+[A-Z])\s+\d{2}[A-Z]{3}/);
+      if (cm2) 艙等 = cm2[1].trim();
+    }
+    if (hkLine) {
+      const hkm = hkLine.match(/^HK(\d+)/);
+      if (hkm) 總人數 = hkm[1];
+      const depm = hkLine.match(/^HK\d+\s+(\d{4})/);
+      if (depm) 起飛時間 = depm[1];
+      const arrm = hkLine.match(/-\d+\s+(\d{4})/);
+      if (arrm) 抵達時間 = arrm[1];
+    }
   }
 
   // 行程區塊：依 AUX SUR EK HKn 分割
@@ -185,47 +203,18 @@ function extractData(raw) {
     const 行程編號 = auxHkm ? parseInt(auxHkm[1]) : idx + 1;
     const 台數 = auxHkm ? auxHkm[1] : '';
 
-    // 地址：支援多種格式
+    // 地址：只抓 ADDRESS 關鍵字後面的內容
     let 地址 = '';
-    const fullText = block.join(' ');
-
-    // 格式0：直接有 ADDRESS 關鍵字
-    const addrKwM = fullText.match(/ADDRESS[:\s]+(.+?)(?=\s+\d{6,}|\s+PU\s|\s+SSR\s|$)/i);
-    if (addrKwM) {
-      地址 = addrKwM[1].trim();
-    } else {
-      // 格式1：TPE NO xxx
-      const tpeNoM = fullText.match(/TPE[\s.]+NO\s+(\d+)\s+(.+?)(?=\s+\d{6,}|\s+PU\s|\s+SSR\s|$)/i);
-      if (tpeNoM) {
-        地址 = 'TPE NO ' + tpeNoM[1] + ' ' + tpeNoM[2].trim();
-      } else {
-        // 格式2：JNB. 或其他城市代碼後的地址
-        const jnbM = fullText.match(/[A-Z]{3}\.(.+?)(?=\s+\d{6,}|\s+PU\s|\s+SSR\s|$)/i);
-        if (jnbM) {
-          地址 = jnbM[1].trim();
-        } else {
-          // 格式3：TPE 日期 /CDD/... 獨立行
-          const tpeLine = block.find(l => /^TPE\s+\d{2}[A-Z]{3}/.test(l));
-          if (tpeLine) {
-            const noM = tpeLine.match(/TPE[\s.]+NO\s+(\d+)/i);
-            const afterNo = noM ? tpeLine.replace(/.*TPE[\s.]+NO\s+\d+/i, '').trim() : '';
-            const tpeLineIdx = block.indexOf(tpeLine);
-            const nextLine = block[tpeLineIdx + 1] || '';
-            const nextIsAddr = nextLine && !/^886|^\d{6,}|^PU\s|^SSR|^AUX/.test(nextLine);
-            if (noM) {
-              地址 = 'TPE NO ' + noM[1] + (afterNo ? ' ' + afterNo : (nextIsAddr ? ' ' + nextLine : ''));
-            } else if (nextIsAddr) {
-              地址 = nextLine;
-            }
-          }
-        }
-      }
+    const addrLineIdx = cleanLines.findIndex((l, i) => i >= si && /^ADDRESS\b/i.test(l));
+    if (addrLineIdx >= 0) {
+      const addrLine = cleanLines[addrLineIdx];
+      const afterAddr = addrLine.replace(/^ADDRESS[:\s]*/i, '').trim();
+      地址 = afterAddr || (cleanLines[addrLineIdx + 1] || '');
     }
 
-    // 電話（6位數以上數字，但不是時間、郵遞區號）
+    // 電話
     let 聯絡電話 = '';
-    // 先找 886 開頭
-    const phoneM = auxLine.match(/\b(886\d{8,})\b/) || auxLine.match(/\b(2\d{7,})\b/) || auxLine.match(/\b(09\d{8})\b/);
+    const phoneM = fullText.match(/\b(886\d{8,})\b/) || fullText.match(/\b(2\d{7,})\b/) || fullText.match(/\b(09\d{8})\b/);
     if (phoneM) {
       聯絡電話 = phoneM[1];
     } else {
@@ -236,11 +225,15 @@ function extractData(raw) {
       }
     }
 
-    // 上車時間（PU HH:MM）
+    // 上車時間（支援 PU 19:30 / P/U 1700 / PU1700 格式）
     let 上車時間 = '';
-    const puM = auxLine.match(/\bPU\s+(\d{1,2}:\d{2})/) ||
-                block.join(' ').match(/\bPU\s+(\d{1,2}:\d{2})/);
-    if (puM) 上車時間 = puM[1];
+    const puM = fullText.match(/\bP[\s\/]?U\s+(\d{1,2}:\d{2})/) ||
+                fullText.match(/\bP[\s\/]?U\s+(\d{4})\b/);
+    if (puM) {
+      const t = puM[1];
+      // 若是 1700 格式，轉成 17:00
+      上車時間 = t.includes(':') ? t : t.slice(0,2) + ':' + t.slice(2);
+    }
 
     // 信箱（從整份原文找 SSR CTCE 對應行程）
     let 客戶信箱 = '';
