@@ -149,45 +149,41 @@ function extractData(raw) {
     const auxHkm = block[0].match(/HK(\d+)/);
     const 行程編號 = auxHkm ? parseInt(auxHkm[1]) : idx + 1;
 
-    // 台數：找 block 中獨立的 HKn 行（非 AUX 那行）
-    let 台數 = '';
-    for (let i = 1; i < block.length; i++) {
-      const hkOnly = block[i].match(/^HK(\d+)$/) || block[i].match(/\bHK(\d+)\b/) ;
-      if (hkOnly && !/^AUX/.test(block[i]) && !/^TPE/.test(block[i])) {
-        台數 = hkOnly[1];
-        break;
-      }
-    }
-    // fallback: 從 AUX 行取
-    if (!台數 && auxHkm) 台數 = auxHkm[1];
+    // 台數：直接從 AUX SUR EK HKn 那行抓
+    const 台數 = auxHkm ? auxHkm[1] : '';
 
-    // TPE 行 & 地址
+    // TPE 行 & 地址（TPE 可能在 AUX 同行或下一行）
     let 地址 = '';
-    const tpeLineIdx = block.findIndex(l => /^TPE\s+\d{2}[A-Z]{3}/.test(l));
-    if (tpeLineIdx >= 0) {
-      const tpeLine = block[tpeLineIdx];
-      // 從 TPE 行抓 NO xxx
-      const noM = tpeLine.match(/TPE\s+NO\s+(\d+)/i);
-      // 下一行是地址
+    // 找含 TPE NO 的行（可能是 AUX 那行本身或獨立行）
+    const tpeLine = block.find(l => /TPE[\s.]+NO\s+\d+/i.test(l));
+    if (tpeLine) {
+      const noM = tpeLine.match(/TPE[\s.]+NO\s+(\d+)/i);
+      // 地址可能在同行 NO 後面，或下一行
+      const afterNo = tpeLine.replace(/.*TPE[\s.]+NO\s+\d+/i, '').trim();
+      const tpeLineIdx = block.indexOf(tpeLine);
       const nextLine = block[tpeLineIdx + 1] || '';
-      const isAddress = nextLine && !/^886|^PU\s|^SSR|^AUX|^TPE/.test(nextLine);
+      const nextIsAddr = nextLine && !/^886|^PU\s|^SSR|^AUX/.test(nextLine);
 
       if (noM) {
-        地址 = 'TPE NO ' + noM[1] + (isAddress ? ' ' + nextLine : '');
-      } else if (isAddress) {
-        地址 = nextLine;
+        if (afterNo) {
+          地址 = 'TPE NO ' + noM[1] + ' ' + afterNo;
+        } else if (nextIsAddr) {
+          地址 = 'TPE NO ' + noM[1] + ' ' + nextLine;
+        } else {
+          地址 = 'TPE NO ' + noM[1];
+        }
       }
     }
 
-    // 電話（886 開頭）
-    const phoneLine = block.find(l => /^886/.test(l));
+    // 電話（886 開頭，可能跟 PU 同行）
+    const phoneLine = block.find(l => /886\d+/.test(l));
     let 聯絡電話 = '';
     if (phoneLine) {
-      const pm = phoneLine.match(/^(886\d+)/);
+      const pm = phoneLine.match(/(886\d+)/);
       if (pm) 聯絡電話 = pm[1];
     }
 
-    // 上車時間（PU HH:MM）
+    // 上車時間（PU HH:MM，可能跟電話同行）
     let 上車時間 = '';
     const puLine = block.find(l => /\bPU\s+\d{1,2}:\d{2}/.test(l));
     if (puLine) {
