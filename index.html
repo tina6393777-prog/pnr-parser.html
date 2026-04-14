@@ -154,8 +154,8 @@ function extractData(raw) {
   // 航班資訊：EK/航班行 + HK行可能分開
   let 航班 = '', 艙等 = '', 總人數 = '', 起飛時間 = '', 抵達時間 = '';
 
-  // 先找包含 HK 的航班行（傳統格式）
-  let flightLine = cleanLines.find(l => /\bHK\d\b/.test(l) && /\d{4}/.test(l) && /^[A-Z]{2}\s*\d+/.test(l));
+  // 先找包含 HK 的完整航班行（必須以航空公司代碼開頭）
+  let flightLine = cleanLines.find(l => /^[A-Z]{2}\s*\d+/.test(l) && /\bHK\d\b/.test(l) && /\d{4}/.test(l));
 
   if (flightLine) {
     // 傳統格式：EK 367 A 08JAN TPEDXB HK3 2300 -4 0455
@@ -172,7 +172,7 @@ function extractData(raw) {
   } else {
     // 分行格式：EK 367 O 02APR TPEDXB（一行）+ HK1 2305-4 0435-5（另一行）
     const ekLine = cleanLines.find(l => /^[A-Z]{2}\s+\d+\s+[A-Z]\s+\d{2}[A-Z]{3}/.test(l));
-    const hkLine = cleanLines.find(l => /^HK\d\s+\d{4}/.test(l));
+    const hkLine = cleanLines.find(l => /^HK\d[\s\-]\d{4}/.test(l));
     if (ekLine) {
       const fm = ekLine.match(/^([A-Z]{2}\s*\d+)/);
       if (fm) 航班 = fm[1].trim();
@@ -203,26 +203,27 @@ function extractData(raw) {
     const 行程編號 = auxHkm ? parseInt(auxHkm[1]) : idx + 1;
     const 台數 = auxHkm ? auxHkm[1] : '';
 
-    // 地址：只抓 ADDRESS 關鍵字後面的內容
+    // 地址：只抓 ADDRESS 關鍵字後面的內容，去掉結尾的 TEL xxx
     let 地址 = '';
     const addrLineIdx = cleanLines.findIndex((l, i) => i >= si && /^ADDRESS\b/i.test(l));
     if (addrLineIdx >= 0) {
       const addrLine = cleanLines[addrLineIdx];
-      const afterAddr = addrLine.replace(/^ADDRESS[:\s]*/i, '').trim();
+      let afterAddr = addrLine.replace(/^ADDRESS[:\s]*/i, '').trim();
+      // 去掉結尾 TEL 電話
+      afterAddr = afterAddr.replace(/\s+TEL\s+\S+\s*$/i, '').trim();
       地址 = afterAddr || (cleanLines[addrLineIdx + 1] || '');
     }
 
-    // 電話
+    // 電話：先從 ADDRESS 行找 TEL 後面的號碼，再從 block 找 886
     let 聯絡電話 = '';
-    const phoneM = fullText.match(/\b(886\d{8,})\b/) || fullText.match(/\b(2\d{7,})\b/) || fullText.match(/\b(09\d{8})\b/);
-    if (phoneM) {
-      聯絡電話 = phoneM[1];
-    } else {
-      const phoneLine = block.find(l => /886\d+/.test(l));
-      if (phoneLine) {
-        const pm = phoneLine.match(/(886\d+)/);
-        if (pm) 聯絡電話 = pm[1];
-      }
+    if (addrLineIdx >= 0) {
+      const telM = cleanLines[addrLineIdx].match(/\bTEL\s+([\d]+)/i);
+      if (telM) 聯絡電話 = telM[1];
+    }
+    if (!聯絡電話) {
+      const fullText = block.join(' ');
+      const phoneM = fullText.match(/\b(886\d{8,})\b/) || fullText.match(/\b(09\d{8})\b/);
+      if (phoneM) 聯絡電話 = phoneM[1];
     }
 
     // 上車時間（支援 PU 19:30 / P/U 1700 / PU1700 格式）
